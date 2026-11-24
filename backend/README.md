@@ -1,6 +1,6 @@
 # LinguaAi backend
 
-A modular FastAPI service, served as an ASGI application by Uvicorn. It uses SQLAlchemy 2.x and Psycopg to connect to PostgreSQL, with Alembic for schema migrations. Authentication and business tables have not been implemented.
+A modular FastAPI service, served as an ASGI application by Uvicorn. It uses SQLAlchemy 2.x and Psycopg to connect to PostgreSQL, with Alembic for schema migrations. The initial core learning schema is defined, but authentication flows and business logic are not implemented.
 
 ## Requirements
 
@@ -80,7 +80,7 @@ Alembic is configured in `alembic.ini` and `alembic/`. Apply available migration
 alembic upgrade head
 ```
 
-There are no business-table migrations yet. When models are added, register them in Alembic's `env.py` before generating migrations.
+The initial revision creates the core user, language, session, analysis, feedback, progress, token, and audio-metadata tables. Future model modules must be imported by `app/models/__init__.py` before generating autogenerate revisions.
 
 ## Database concepts
 
@@ -92,11 +92,13 @@ There are no business-table migrations yet. When models are added, register them
 ## Project structure
 
 - `app/core/` contains settings and structured logging.
-- `app/db/` contains the SQLAlchemy declarative base, engine, session factory, and FastAPI session dependency.
+- `app/db/` contains the SQLAlchemy base and mixins, engine, session factory, and FastAPI session dependency.
+- `app/models/` contains the twelve core learning-schema models registered with Alembic.
 - `app/api/v1/` contains versioned API routers and endpoints.
 - `alembic/` contains migration configuration and revision scripts.
 - `app/schemas/` contains validated request and response models.
 - `tests/` contains pytest tests for API behavior.
+- `docs/database/erd.md` documents the entity relationships and deletion rules.
 - `main.py` exposes the ASGI application for Uvicorn.
 
 Configuration is loaded from environment variables, with an optional local `.env` file. `CORS_ORIGINS` is a comma-separated list of allowed origins. Keep local `.env` files and secrets out of version control.
