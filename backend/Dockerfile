@@ -8,8 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md main.py ./
+COPY pyproject.toml README.md alembic.ini main.py ./
 COPY app ./app
+COPY alembic ./alembic
+COPY tests ./tests
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install ".[dev]" \
     && groupadd --system app \
@@ -20,6 +22,6 @@ USER app
 EXPOSE 8000
 
 HEALTHCHECK --interval=15s --timeout=3s --start-period=15s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2)"
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/database', timeout=2)"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app"]

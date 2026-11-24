@@ -25,3 +25,11 @@ def test_api_documentation_is_available() -> None:
         response = client.get("/docs")
 
     assert response.status_code == 200
+
+
+def test_database_health_returns_connected() -> None:
+    with TestClient(create_app()) as client:
+        response = client.get("/api/v1/health/database")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "database": "connected"}

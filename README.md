@@ -28,6 +28,7 @@ To run both application services with Docker, install:
 From the repository root:
 
 ```powershell
+Copy-Item .env.example .env
 docker compose up --build
 ```
 

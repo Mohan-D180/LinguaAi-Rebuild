@@ -1,4 +1,25 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-linguaai}
+      POSTGRES_USER: ${POSTGRES_USER:-linguaai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the root .env file}
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    networks:
+      - app
+
   backend:
     build:
       context: ./backend
@@ -9,17 +30,25 @@ services:
       API_VERSION: v1
       LOG_LEVEL: ${BACKEND_LOG_LEVEL:-INFO}
       CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in the root .env file}
+      PYTEST_ADDOPTS: -o cache_dir=/tmp/pytest-cache
+    depends_on:
+      postgres:
+        condition: service_healthy
     expose:
       - "8000"
     volumes:
       - ./backend/app:/app/app:ro
       - ./backend/main.py:/app/main.py:ro
+      - ./backend/tests:/app/tests:ro
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini:ro
     healthcheck:
       test:
         - CMD
         - python
         - -c
-        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2)"
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/database', timeout=2)"
       interval: 15s
       timeout: 3s
       start_period: 15s
@@ -61,6 +90,7 @@ services:
 volumes:
   frontend_node_modules:
   frontend_npm_cache:
+  postgres_data:
 
 networks:
   app:

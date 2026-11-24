@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     api_version: str = "v1"
     log_level: str = "INFO"
     cors_origins: str = "http://localhost:5173"
+    database_url: str = "postgresql+psycopg://localhost/linguaai"
 
     @property
     def allowed_origins(self) -> list[str]:

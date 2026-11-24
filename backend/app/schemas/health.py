@@ -11,3 +11,10 @@ class HealthResponse(BaseModel):
     application_name: str
     status: Literal["ok"]
     api_version: str
+
+
+class DatabaseHealthResponse(BaseModel):
+    """Public database connectivity status."""
+
+    status: Literal["ok"]
+    database: Literal["connected"]

@@ -1,6 +1,6 @@
 # LinguaAi backend
 
-A modular FastAPI service, served as an ASGI application by Uvicorn. This initial scaffold provides a versioned health endpoint, environment-based settings, CORS configuration, JSON logs, and a pytest test suite. It does not connect to PostgreSQL or implement authentication.
+A modular FastAPI service, served as an ASGI application by Uvicorn. It uses SQLAlchemy 2.x and Psycopg to connect to PostgreSQL, with Alembic for schema migrations. Authentication and business tables have not been implemented.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
-Copy `.env.example` to `.env` to customize local settings. The defaults work for local development.
+Copy `.env.example` to `.env` and set `DATABASE_URL` to a reachable PostgreSQL instance. The example uses a local PostgreSQL service and development-only placeholder credentials; replace them for your environment. For Docker Compose, configure the root `.env` file as described in [`../infrastructure/README.md`](../infrastructure/README.md).
 
 ## Run the API
 
@@ -54,6 +54,14 @@ Example response:
 }
 ```
 
+Database readiness is checked separately:
+
+```text
+GET /api/v1/health/database
+```
+
+The database health endpoint executes `SELECT 1` and returns HTTP 503 if PostgreSQL is unavailable.
+
 ## Test and lint
 
 ```bash
@@ -62,10 +70,31 @@ ruff check .
 ruff format --check .
 ```
 
+The database connectivity test requires a reachable PostgreSQL instance configured by `DATABASE_URL`. With Docker Compose running, run it using `docker compose exec backend pytest`.
+
+## Database migrations
+
+Alembic is configured in `alembic.ini` and `alembic/`. Apply available migrations with:
+
+```bash
+alembic upgrade head
+```
+
+There are no business-table migrations yet. When models are added, register them in Alembic's `env.py` before generating migrations.
+
+## Database concepts
+
+- **Connection pooling:** SQLAlchemy reuses open PostgreSQL connections instead of creating a new connection for every request. `pool_pre_ping=True` checks a pooled connection before reuse.
+- **ORM:** SQLAlchemy maps Python model classes to database tables; `app/db/base.py` provides the declarative base for future models.
+- **Migrations:** Alembic records and applies ordered schema changes so database structure can evolve consistently across environments.
+- **Sessions:** A SQLAlchemy session is a short-lived unit of work. FastAPI's `get_db` dependency provides one session per request and closes it when the request finishes.
+
 ## Project structure
 
 - `app/core/` contains settings and structured logging.
+- `app/db/` contains the SQLAlchemy declarative base, engine, session factory, and FastAPI session dependency.
 - `app/api/v1/` contains versioned API routers and endpoints.
+- `alembic/` contains migration configuration and revision scripts.
 - `app/schemas/` contains validated request and response models.
 - `tests/` contains pytest tests for API behavior.
 - `main.py` exposes the ASGI application for Uvicorn.
