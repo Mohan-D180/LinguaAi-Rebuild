@@ -1,0 +1,1 @@
+"""LinguaAi backend application package."""
