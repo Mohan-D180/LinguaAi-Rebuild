@@ -2,7 +2,7 @@
 
 LinguaAi is a foundation for a full-stack language application. The planned stack is React, TypeScript, and Vite for the frontend; Python and FastAPI for the backend; PostgreSQL for persistent data; and separate AI services for speech recognition, a locally hosted language model, and text-to-speech.
 
-> **Project status:** This repository currently contains structure and documentation only. Application code, dependency manifests, database migrations, and deployment workflows have not been added yet.
+> **Project status:** The frontend and backend are initialized with development placeholders and a basic health API. Database migrations, authentication, AI services, and production deployment workflows have not been added yet.
 
 ## Repository structure
 
@@ -11,7 +11,7 @@ LinguaAi is a foundation for a full-stack language application. The planned stac
 | [`frontend/`](frontend/README.md) | Browser application, planned with React, TypeScript, and Vite. |
 | [`backend/`](backend/README.md) | HTTP API and application logic, planned with Python and FastAPI. |
 | [`ai-services/`](ai-services/README.md) | Isolated speech recognition, local LLM, and text-to-speech components. |
-| [`infrastructure/`](infrastructure/README.md) | Local development and deployment infrastructure, including future container configuration. |
+| [`infrastructure/`](infrastructure/README.md) | Docker Compose development environment and future deployment infrastructure. |
 | [`database/`](database/README.md) | PostgreSQL schema, migrations, and safe development seed data. |
 | [`tests/`](tests/README.md) | Shared testing guidance and, as the project grows, cross-component test support. |
 | [`docs/`](docs/README.md) | Architecture notes, decisions, and developer/operator documentation. |
@@ -21,36 +21,25 @@ LinguaAi is a foundation for a full-stack language application. The planned stac
 
 ### Prerequisites
 
-For development once the application code is introduced, install:
+To run both application services with Docker, install:
 
-- Git
-- Python (version to be selected when the backend is initialized)
-- Node.js and npm (version to be selected when the frontend is initialized)
-- PostgreSQL
+- Docker Engine or Docker Desktop with the Compose plugin
 
-AI model runtimes and model files will be documented when the AI services are implemented. Model files and other large/generated assets should not be committed.
-
-### Prepare local configuration
-
-1. Copy `.env.example` to `.env` at the repository root.
-2. Set local PostgreSQL connection values in `.env`. Keep real credentials in this local file or a secrets manager; never commit them.
-3. Start or connect to a local PostgreSQL instance and create the configured development database.
-
-For PowerShell:
+From the repository root:
 
 ```powershell
-Copy-Item .env.example .env
+docker compose up --build
 ```
 
-This scaffold does not yet include frontend or backend dependency manifests, database migrations, or application entry points, so there are no install or run commands at this stage. Those commands should be added alongside the corresponding implementation.
+Open `http://localhost:5173`. The frontend development server proxies `/api` requests to the backend over the private Compose network. See [`infrastructure/README.md`](infrastructure/README.md) for health checks, logs, configuration, and shutdown commands.
 
-## Configuration
+To run a service directly without Docker, follow the instructions in [`frontend/README.md`](frontend/README.md) or [`backend/README.md`](backend/README.md).
 
-`.env.example` lists the anticipated local configuration keys without containing production credentials. The application does not yet load these values. Update the example when configuration requirements become concrete, and document any new variable where it is introduced.
+AI model runtimes and model files will be documented when the AI services are implemented. Model files and other large/generated assets should not be committed.
 
 ## Development principles
 
 - Keep frontend, backend, and AI service responsibilities clearly separated.
 - Treat PostgreSQL migrations as the source of truth for schema changes.
-- Keep secrets, local environment files, model weights, and generated outputs out of version control.
+- Keep secrets, local environment files, model weights, and generated outputs out of version control and container images.
 - Add automated checks when their respective build and test commands exist.
